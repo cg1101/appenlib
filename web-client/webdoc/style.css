@@ -1,0 +1,50 @@
+/*
+ * style sheet file for appenlib webpages
+ * author:   Cheng Gang
+ * version:  1.0
+ * history:  2006-08-08 initial draft
+ */
+ 
+/* anchor pseudo-classes */
+A:link {
+	color: blue;
+}
+A:active {
+	color: red;
+}
+A:hover {
+	color: red;
+}
+A:visited {
+	color: blue;
+}
+
+BODY {
+	font-family: serif, verdana;
+}
+
+/* class as selector */
+DIV.search_result {
+	border: dotted;
+	border-color: blue;
+	width: 90%;
+}
+TD.doc_id {
+	font-weight: bold;
+	width: 15%;
+}
+TH.search_result {
+	font-weight: bold;
+	text-align: left;
+}
+TR.search_result {
+	background: #eeeeff;
+	height=30;
+}
+TR.ver_result {
+	background: #eeffee;
+	height=30;
+}
+/* ID as selector */
+/* Contextual selector */
+

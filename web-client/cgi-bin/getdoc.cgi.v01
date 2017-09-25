@@ -1,0 +1,96 @@
+#!/usr/bin/python
+
+_author  = "Gang Cheng"
+_version = "0.1"
+_history = """
+  0.1  initial version, redirect to temporary file
+"""
+
+import os, sys
+ESCAPED_CHAR = [' ', '!', '"', '#', '$', '%', '&', "'", '(', ')', 
+		'+', ',', '/', 
+		':', ';', '<', '=', '>', '?', '@', 
+		'[', '\\', ']', '^', '`', 
+		'{', '|', '}', '~']
+
+def removeEscape(text):
+	for c in ['&', '=']:
+		if text.find(c) >= 0:
+			raise ValueError, "input error at '%s'" % c
+	todo = text.replace('+', ' ')
+	done = ''
+	n = todo.find('%')
+	while n >= 0:
+		done += todo[:n]
+		t = todo[n:n+3]
+		if len(t) < 3:
+			raise ValueError, "input error at '%s'" % t
+		try: c = chr(int(t[1:], 16))
+		except: raise ValueError, "input error at '%s'" % t
+		done += c
+		todo = todo[n+3:]
+		n = todo.find('%')
+	done += todo
+	return done
+		
+def getArgumentDict(text):
+	"""Return argument dict."""
+	if not text: return {}
+	pairs = text.split('&')
+	buf = []
+	for kv in pairs:
+		k, v = kv.split('=')
+		k = removeEscape(k)
+		v = removeEscape(v)
+		buf.append((k, v))
+	return dict(buf)
+
+def escape_str(text):
+	text = text.replace('\\', '\\\\')
+	text = text.replace('"', '\\"')
+	text = text.replace("'", "\\'")
+	return text
+
+# print page header
+# document type definition is needed for proper rendering
+# if omitted, table rendering will be incorrect
+print """Content-type: text/html
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"
+   "http://www.w3.org/TR/REC-html40/strict.dtd">
+<HTML>
+<HEAD>
+<TITLE>Appen library search results</TITLE>
+<LINK rel="stylesheet" href="/appenlib/style.css">"""
+
+# decode query condition
+query_str = os.getenv("QUERY_STRING")
+argu_dict = getArgumentDict(query_str)
+
+doc_id = argu_dict.get("doc_id", "")
+doc_ver = argu_dict.get("doc_ver", "")
+
+meta = ""
+if not doc_id:
+	msg = "Sorry, no document ID found in query conditions."
+else:
+	f = os.popen("/usr/lib/cgi-bin/getdoc.py %s %s /var/www/appenlib/tmp/%s" % \
+		(doc_id, doc_ver, doc_id), "r")
+	a = f.close()
+	if a:
+		msg = "Sorry, unable to get document %s, err: %s." % (doc_id, a)
+	else:
+		meta = """<META http-equiv="refresh" content="0;http://madge.appen.com.au/appenlib/tmp/%s">
+""" % doc_id
+		msg = """<A href="/appenlib/tmp/%s">%s</A>""" % (doc_id, doc_id)
+
+print """%s</HEAD>\n<BODY>%s""" % (meta, msg)
+	
+
+# print page footer
+#print """<HR>
+#<FONT size=2>Send comments to <A href="mailto:it@appen.com.au">it@appen.com.au</A>.</FONT>
+#"""
+print """</BODY>
+</HTML>"""
+# !"#$&%'()*+,-./09:;<=>?@AZ[\]^_`az{|}~
